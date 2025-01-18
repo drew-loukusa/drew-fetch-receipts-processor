@@ -1,0 +1,14 @@
+.openapi-generator-ignore
+README.md
+api/openapi.yaml
+openapi/api.go
+openapi/api_default.go
+openapi/error.go
+openapi/helpers.go
+openapi/impl.go
+openapi/logger.go
+openapi/model_get_receipt_points_200_response.go
+openapi/model_item.go
+openapi/model_process_receipt_200_response.go
+openapi/model_receipt.go
+openapi/routers.go

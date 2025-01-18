@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  description: A simple receipt processor
+  title: Receipt Processor
+  version: 1.0.0
+servers:
+- url: /
+paths:
+  /receipts/process:
+    post:
+      description: Submits a receipt for processing.
+      operationId: processReceipt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Receipt'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/processReceipt_200_response'
+          description: Returns the ID assigned to the receipt.
+        "400":
+          description: The receipt is invalid.
+      summary: Submits a receipt for processing.
+  /receipts/{id}/points:
+    get:
+      description: Returns the points awarded for the receipt.
+      operationId: getReceiptPoints
+      parameters:
+      - description: The ID of the receipt.
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          pattern: ^\S+$
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getReceiptPoints_200_response'
+          description: The number of points awarded.
+        "404":
+          description: No receipt found for that ID.
+      summary: Returns the points awarded for the receipt.
+components:
+  responses:
+    BadRequest:
+      description: The receipt is invalid.
+    NotFound:
+      description: No receipt found for that ID.
+  schemas:
+    Receipt:
+      example:
+        purchaseDate: 2022-01-01
+        total: "6.49"
+        retailer: M&M Corner Market
+        purchaseTime: 13:01
+        items:
+        - price: "6.49"
+          shortDescription: Mountain Dew 12PK
+        - price: "6.49"
+          shortDescription: Mountain Dew 12PK
+      properties:
+        retailer:
+          description: The name of the retailer or store the receipt is from.
+          example: M&M Corner Market
+          pattern: "^[\\w\\s\\-&]+$"
+          type: string
+        purchaseDate:
+          description: The date of the purchase printed on the receipt.
+          example: 2022-01-01
+          format: date
+          type: string
+        purchaseTime:
+          description: The time of the purchase printed on the receipt. 24-hour time
+            expected.
+          example: 13:01
+          format: time
+          type: string
+        items:
+          items:
+            $ref: '#/components/schemas/Item'
+          minItems: 1
+          type: array
+        total:
+          description: The total amount paid on the receipt.
+          example: "6.49"
+          pattern: "^\\d+\\.\\d{2}$"
+          type: string
+      required:
+      - items
+      - purchaseDate
+      - purchaseTime
+      - retailer
+      - total
+      type: object
+    Item:
+      example:
+        price: "6.49"
+        shortDescription: Mountain Dew 12PK
+      properties:
+        shortDescription:
+          description: The Short Product Description for the item.
+          example: Mountain Dew 12PK
+          pattern: "^[\\w\\s\\-]+$"
+          type: string
+        price:
+          description: The total price payed for this item.
+          example: "6.49"
+          pattern: "^\\d+\\.\\d{2}$"
+          type: string
+      required:
+      - price
+      - shortDescription
+      type: object
+    processReceipt_200_response:
+      example:
+        id: adb6b560-0eef-42bc-9d16-df48f30e89b2
+      properties:
+        id:
+          example: adb6b560-0eef-42bc-9d16-df48f30e89b2
+          pattern: ^\S+$
+          type: string
+      required:
+      - id
+      type: object
+    getReceiptPoints_200_response:
+      example:
+        points: 100
+      properties:
+        points:
+          example: 100
+          format: int64
+          type: integer
+      type: object
