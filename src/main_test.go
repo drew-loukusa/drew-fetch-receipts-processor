@@ -3,30 +3,41 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
 	"net/http"
 	"net/http/httptest"
+
+	"github.com/google/uuid"
 )
 
 var a App
 
 func TestMain(m *testing.M) {
+	a.Initialize()
 	code := m.Run()
 	os.Exit(code)
 }
 
-// func TestEmptyTable(t *testing.T) {
-//     req, _ := http.NewRequest("GET", "/products", nil)
-//     response := executeRequest(req)
+var validReciept = `{
+	"retailer": "Strosin Inc",
+	"purchaseDate": "2022-01-02",
+	"purchaseTime": "08:13",
+	"total": "10.40",
+	"items": [
+			{"shortDescription": "Pepsi - 12-oz", "price": "1.25"},
+			{"shortDescription": "Dasani", "price": "1.40"}
+	]
+}`
+var PROCESS_RECEIPTS_URL = "/receipts/process"
 
-//     checkResponseCode(t, http.StatusOK, response.Code)
-
-//     if body := response.Body.String(); body != "[]" {
-//         t.Errorf("Expected an empty array. Got %s", body)
-//     }
-// }
+func mkGetReceiptUrl(receiptId string) (url string) {
+	return fmt.Sprintf("/receipts/%s/points", receiptId)
+}
 
 func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
@@ -35,132 +46,56 @@ func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 	return rr
 }
 
-func checkResponseCode(t *testing.T, expected, actual int) {
-	if expected != actual {
-		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
+func checkResponseCode(t *testing.T, expectedResponseCode int, actualResponse *httptest.ResponseRecorder) {
+	if expectedResponseCode != actualResponse.Code {
+		t.Errorf("Expected response code %d. Got %d\n", expectedResponseCode, actualResponse.Code)
+		t.Error(actualResponse.Body)
 	}
 }
 
-// func TestGetNonExistentProduct(t *testing.T) {
-//     clearTable()
-
-//     req, _ := http.NewRequest("GET", "/product/11", nil)
-//     response := executeRequest(req)
-
-//     checkResponseCode(t, http.StatusNotFound, response.Code)
-
-//     var m map[string]string
-//     json.Unmarshal(response.Body.Bytes(), &m)
-//     if m["error"] != "Product not found" {
-//         t.Errorf("Expected the 'error' key of the response to be set to 'Product not found'. Got '%s'", m["error"])
-//     }
-// }
-
-// func TestCreateProduct(t *testing.T) {
-
-//     clearTable()
-
-//     var jsonStr = []byte(`{"name":"test product", "price": 11.22}`)
-//     req, _ := http.NewRequest("POST", "/product", bytes.NewBuffer(jsonStr))
-//     req.Header.Set("Content-Type", "application/json")
-
-//     response := executeRequest(req)
-//     checkResponseCode(t, http.StatusCreated, response.Code)
-
-//     var m map[string]interface{}
-//     json.Unmarshal(response.Body.Bytes(), &m)
-
-//     if m["name"] != "test product" {
-//         t.Errorf("Expected product name to be 'test product'. Got '%v'", m["name"])
-//     }
-
-//     if m["price"] != 11.22 {
-//         t.Errorf("Expected product price to be '11.22'. Got '%v'", m["price"])
-//     }
-
-//     // the id is compared to 1.0 because JSON unmarshaling converts numbers to
-//     // floats, when the target is a map[string]interface{}
-//     if m["id"] != 1.0 {
-//         t.Errorf("Expected product ID to be '1'. Got '%v'", m["id"])
-//     }
-// }
-
-// func TestGetProduct(t *testing.T) {
-//     clearTable()
-//     addProducts(1)
-
-//     req, _ := http.NewRequest("GET", "/product/1", nil)
-//     response := executeRequest(req)
-
-//     checkResponseCode(t, http.StatusOK, response.Code)
-// }
-
-// // main_test.go
-
-// func addProducts(count int) {
-//     if count < 1 {
-//         count = 1
-//     }
-
-//     for i := 0; i < count; i++ {
-//         a.DB.Exec("INSERT INTO products(name, price) VALUES($1, $2)", "Product "+strconv.Itoa(i), (i+1.0)*10)
-//     }
-// }
-
-// func TestUpdateProduct(t *testing.T) {
-
-//     clearTable()
-//     addProducts(1)
-
-//     req, _ := http.NewRequest("GET", "/product/1", nil)
-//     response := executeRequest(req)
-//     var originalProduct map[string]interface{}
-//     json.Unmarshal(response.Body.Bytes(), &originalProduct)
-
-//     var jsonStr = []byte(`{"name":"test product - updated name", "price": 11.22}`)
-//     req, _ = http.NewRequest("PUT", "/product/1", bytes.NewBuffer(jsonStr))
-//     req.Header.Set("Content-Type", "application/json")
-
-//     response = executeRequest(req)
-
-//     checkResponseCode(t, http.StatusOK, response.Code)
-
-//     var m map[string]interface{}
-//     json.Unmarshal(response.Body.Bytes(), &m)
-
-//     if m["id"] != originalProduct["id"] {
-//         t.Errorf("Expected the id to remain the same (%v). Got %v", originalProduct["id"], m["id"])
-//     }
-
-//     if m["name"] == originalProduct["name"] {
-//         t.Errorf("Expected the name to change from '%v' to '%v'. Got '%v'", originalProduct["name"], m["name"], m["name"])
-//     }
-
-//     if m["price"] == originalProduct["price"] {
-//         t.Errorf("Expected the price to change from '%v' to '%v'. Got '%v'", originalProduct["price"], m["price"], m["price"])
-//     }
-// }
-
-// func TestDeleteProduct(t *testing.T) {
-//     clearTable()
-//     addProducts(1)
-
-//     req, _ := http.NewRequest("GET", "/product/1", nil)
-//     response := executeRequest(req)
-//     checkResponseCode(t, http.StatusOK, response.Code)
-
-//     req, _ = http.NewRequest("DELETE", "/product/1", nil)
-//     response = executeRequest(req)
-
-//     checkResponseCode(t, http.StatusOK, response.Code)
-
-//     req, _ = http.NewRequest("GET", "/product/1", nil)
-//     response = executeRequest(req)
-//     checkResponseCode(t, http.StatusNotFound, response.Code)
-// }
-
-func TestDeleteProduct(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/product/1", nil)
+func TestProcessReceipt(t *testing.T) {
+	bodyJsonStr := []byte(validReciept)
+	req, _ := http.NewRequest("POST", PROCESS_RECEIPTS_URL, bytes.NewBuffer(bodyJsonStr))
 	response := executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+	checkResponseCode(t, http.StatusOK, response)
+}
+
+func TestProcessReceipt_IncorrectlyFormattedTotal(t *testing.T) {
+	// Total has too many digits after the '.'
+	bodyJsonStr := []byte(`{
+    "retailer": "Strosin Inc",
+    "purchaseDate": "2022-01-02",
+    "purchaseTime": "08:13",
+    "total": "10.409",
+    "items": [
+        {"shortDescription": "Pepsi - 12-oz", "price": "1.25"},
+        {"shortDescription": "Dasani", "price": "1.40"}
+    ]
+		}`)
+	req, _ := http.NewRequest("POST", PROCESS_RECEIPTS_URL, bytes.NewBuffer(bodyJsonStr))
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusBadRequest, response)
+}
+
+func makeReceipt() (id string) {
+	bodyJsonStr := []byte(validReciept)
+	req, _ := http.NewRequest("POST", PROCESS_RECEIPTS_URL, bytes.NewBuffer(bodyJsonStr))
+	response := executeRequest(req)
+	var m map[string]string
+	json.Unmarshal(response.Body.Bytes(), &m)
+	return m["id"]
+}
+
+func TestGetReceipt(t *testing.T) {
+	receiptId := makeReceipt()
+	req, _ := http.NewRequest("GET", mkGetReceiptUrl(receiptId), nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response)
+}
+
+func TestGetNonExistantReceipt(t *testing.T) {
+	receiptId := uuid.NewString()
+	req, _ := http.NewRequest("GET", mkGetReceiptUrl(receiptId), nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusNotFound, response)
 }

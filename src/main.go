@@ -1,29 +1,16 @@
 package main
 
-import (
-	"log"
-	"net/http"
-
-	"github.com/drew-loukusa/drew-fetch-receipts-processor/server/openapi"
-)
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Do stuff here
-		log.Println(r.RequestURI)
-		// Call the next handler, which can be another middleware in the chain, or the final handler.
-		next.ServeHTTP(w, r)
-	})
-}
+import "github.com/joho/godotenv"
 
 func main() {
+	envFile, _ := godotenv.Read("../.env")
+	listenAddr, addrValid := envFile["LISTEN_ADDR"]
 
-	log.Printf("Server Started")
+	if !addrValid {
+		panic("No address set for service")
+	}
 
-	ReceiptsProcessorService := NewReceiptsService()
-	ReceiptsProcessorController := openapi.NewDefaultAPIController(ReceiptsProcessorService)
-	router := openapi.NewRouter(ReceiptsProcessorController)
-
-	router.Use(loggingMiddleware)
-	log.Fatal(http.ListenAndServe("localhost:8080", router))
+	app := App{}
+	app.Initialize()
+	app.Run(listenAddr)
 }
