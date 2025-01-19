@@ -10,8 +10,12 @@
 
 package openapi
 
-
-
+import (
+	"regexp"
+	"errors"
+	"log"
+	"fmt"
+)
 
 type Receipt struct {
 
@@ -55,6 +59,17 @@ func AssertReceiptRequired(obj Receipt) error {
 
 // AssertReceiptConstraints checks if the values respects the defined constraints
 func AssertReceiptConstraints(obj Receipt) error {
+
+	totalRe := regexp.MustCompile("^\\d+\\.\\d{2}$")
+	totalIsValid := totalRe.MatchString(obj.Total)
+	log.Printf("totalIsValid? %t", totalIsValid)
+	
+	if !totalIsValid {
+		err := errors.New(fmt.Sprintf("incorectly formatted total: %s", obj.Total))
+		log.Println(err)
+		return err
+	}
+
 	for _, el := range obj.Items {
 		if err := AssertItemConstraints(el); err != nil {
 			return err

@@ -78,7 +78,8 @@ func (c *DefaultAPIController) ProcessReceipt(w http.ResponseWriter, r *http.Req
 		return
 	}
 	if err := AssertReceiptConstraints(receiptParam); err != nil {
-		c.errorHandler(w, r, err, nil)
+		errorResponse := ImplResponse{Code: 400, Body: err.Error()}
+		c.errorHandler(w, r, err, &errorResponse)
 		return
 	}
 	result, err := c.service.ProcessReceipt(r.Context(), receiptParam)

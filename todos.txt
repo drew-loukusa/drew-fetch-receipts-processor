@@ -1,0 +1,4 @@
+* Setup tests
+  - Have tests that test reciept processing 
+  - Have tests that test input validation
+  
