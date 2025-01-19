@@ -12,7 +12,6 @@ package openapi
 
 import (
 	"context"
-	"log"
 	"net/http"
 )
 
@@ -32,27 +31,4 @@ type DefaultAPIRouter interface {
 type DefaultAPIServicer interface { 
 	ProcessReceipt(context.Context, Receipt) (ImplResponse, error)
 	GetReceiptPoints(context.Context, string) (ImplResponse, error)
-}
-
-type MyService struct {}
-
-func NewMyService() *MyService {
-	return &MyService{}
-}
-
-func (s *MyService) ProcessReceipt(ctx context.Context, receipt Receipt) (ImplResponse, error) {
-	// thing, err := s.store.GetThing(uuid)
-	// if err == helpers.ErrNotFound {
-	// 	return openapi.Response(http.StatusNotFound, nil), nil
-	// }
-	// if err != nil {
-	// 	return openapi.Response(http.StatusInternalServerError, nil), err
-	// }
-	log.Println("Got request to process receipt")
-	return Response(http.StatusOK, "Heyo!"), nil
-}
-
-func (s *MyService) GetReceiptPoints(context.Context, string) (ImplResponse, error) {
-	log.Println("Got request to get receipt points")
-	return Response(http.StatusOK, "Heyo!"), nil
 }

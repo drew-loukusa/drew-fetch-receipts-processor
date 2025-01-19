@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	receiptsProcessorServer "github.com/drew-loukusa/drew-fetch-receipts-processor/server/openapi"
+	"github.com/drew-loukusa/drew-fetch-receipts-processor/server/openapi"
 )
 
 func loggingMiddleware(next http.Handler) http.Handler {
@@ -16,20 +16,13 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func fooBar(w http.ResponseWriter, r *http.Request) {
-	log.Printf("AHahahahahahahahahahah")
-}
-
 func main() {
 
 	log.Printf("Server Started")
 
-	ReceiptsProcessorService := receiptsProcessorServer.NewMyService()
-	ReceiptsProcessorController := receiptsProcessorServer.NewDefaultAPIController(ReceiptsProcessorService)
-
-	router := receiptsProcessorServer.NewRouter(ReceiptsProcessorController)
-
-	router.HandleFunc("/fooBar", fooBar).Methods("GET")
+	ReceiptsProcessorService := NewReceiptsService()
+	ReceiptsProcessorController := openapi.NewDefaultAPIController(ReceiptsProcessorService)
+	router := openapi.NewRouter(ReceiptsProcessorController)
 
 	router.Use(loggingMiddleware)
 	log.Fatal(http.ListenAndServe("localhost:8080", router))
