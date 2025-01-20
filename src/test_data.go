@@ -1,15 +1,5 @@
 package main
 
-var validReceipt = `{
-	"retailer": "Strosin Inc",
-	"purchaseDate": "2022-01-02",
-	"purchaseTime": "08:13",
-	"total": "10.40",
-	"items": [
-			{"shortDescription": "Pepsi - 12-oz", "price": "1.25"},
-			{"shortDescription": "Dasani", "price": "1.40"}
-	]
-}`
 var targetReceipt = `{
 	"retailer": "Target",
 	"purchaseDate": "2022-01-01",
@@ -55,4 +45,16 @@ var mAndMCornerMarketReceipt = `{
 		}
 	],
 	"total": "9.00"
+}`
+
+var validReceipt = `
+{
+	"retailer": "Walgreens",
+	"purchaseDate": "2022-01-02",
+	"purchaseTime": "08:13",
+	"total": "2.65",
+	"items": [
+			{"shortDescription": "Pepsi - 12-oz", "price": "1.25"},
+			{"shortDescription": "Dasani", "price": "1.40"}
+	]
 }`

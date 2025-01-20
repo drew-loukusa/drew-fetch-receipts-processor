@@ -129,7 +129,7 @@ func (s *ReceiptsService) GetReceiptPoints(ctx context.Context, id string) (oapi
 	points, ok := s.ReceiptsRepo[id]
 
 	if !ok {
-		return oapi.Response(http.StatusNotFound, nil), nil
+		return oapi.Response(http.StatusNotFound, "No receipt found for that ID."), nil
 	}
 
 	log.Printf("Points for receipt are %d", points)
