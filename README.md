@@ -19,7 +19,7 @@ cd into `src` and run `go test .`
 
 - Entry point for program is [main.go](src/main.go)
 - Application is setup in [app.go](src/app.go)
-- Core logic is in [src/receipts_service.go](src/receipts_service.go)
+- Core logic is spread across [src/receipts_service.go](src/receipts_service.go) and [src/utils.go](src/utils.go) (`utils.go` contains the logic for counting how many points a receipt is worth)
 - I used [openapi-generator](https://openapi-generator.tech/) to generate an api interface,
   which I implement in [src/receipts_service.go](src/receipts_service.go)
 
