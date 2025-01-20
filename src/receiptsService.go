@@ -29,12 +29,10 @@ func TotalIsRound(total string) bool {
 	return roundTotal.MatchString(total)
 }
 
-func TotalIsMultipleOf(multipleOf float64, total string) bool {
-	totalFloat, ok := strconv.ParseFloat(total, 64)
-	if ok != nil {
-		panic(fmt.Sprintf("Could not parse float from %s", total))
-	}
-	return totalFloat/float64(multipleOf) == 0
+// Should probably make this generic (work for any multiple), but this works for now
+func TotalIsMultipleOf25(total string) bool {
+	multipleOf25Re := regexp.MustCompile(`^\d+\.(00|25|50|75)`)
+	return multipleOf25Re.MatchString(total)
 }
 
 func CountAlphaNumericChars(src string) int {
@@ -43,13 +41,17 @@ func CountAlphaNumericChars(src string) int {
 	return len(matches)
 }
 
+func stringMatches(src, pattern string) bool {
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(src)
+}
+
+var STRING_ENDS_WITH_ODD_PATTERN = `[13579]$` // Pattern for checking if string ends with odd number
 func DateIsOdd(src string) bool {
-	oddDateRe := regexp.MustCompile(`[13579]$`)
-	return oddDateRe.MatchString(src)
+	return stringMatches(src, STRING_ENDS_WITH_ODD_PATTERN)
 }
 
 func MustParseTime(layout, value string) time.Time {
-	// valueTrimmed := strings.TrimLeft(value, "0")
 	result, err := time.Parse(layout, value)
 
 	if err != nil {
@@ -78,18 +80,20 @@ func CountPoints(receipt oapi.Receipt) int64 {
 		points += 50
 	}
 
-	if TotalIsMultipleOf(0.25, receipt.Total) {
+	if TotalIsMultipleOf25(receipt.Total) {
 		points += 25
 	}
 
 	// 5 points for every 2 items
-	points += len(receipt.Items) / 2
+	points += (len(receipt.Items) / 2) * 5
 
 	// For each item, check if trimmed desc len is multiple of 3
 	// and do some math do the item price and add that to the total
 	for _, item := range receipt.Items {
 		descTrimmed := strings.TrimSpace(item.ShortDescription)
-		if len(descTrimmed)/3 == 0 {
+		descLen := len(descTrimmed)
+		descLenMultipleOf3Res := descLen % 3
+		if descLenMultipleOf3Res == 0 {
 			newItemPrice, ok := strconv.ParseFloat(item.Price, 64)
 			if ok != nil {
 				panic(fmt.Sprintf("Failed to parse float from %s", item.Price))

@@ -15,6 +15,7 @@ import (
 	"errors"
 	"log"
 	"fmt"
+	"time"
 )
 
 type Receipt struct {
@@ -59,21 +60,48 @@ func AssertReceiptRequired(obj Receipt) error {
 
 // AssertReceiptConstraints checks if the values respects the defined constraints
 func AssertReceiptConstraints(obj Receipt) error {
-
-	totalRe := regexp.MustCompile("^\\d+\\.\\d{2}$")
-	totalIsValid := totalRe.MatchString(obj.Total)
-	log.Printf("totalIsValid? %t", totalIsValid)
 	
-	if !totalIsValid {
-		err := errors.New(fmt.Sprintf("incorectly formatted total: %s", obj.Total))
+	// -------------------- START Manual edits -------------------------------- //
+	// openapi-generator doesn't seem to actually generate code that validates
+	// if passed fields are formatted correctly according to their 'pattern'
+	// hence I had to manually edit this file to add format checking 
+
+	retailerRe :=  regexp.MustCompile(`^[\w\s\-&]+$`)
+	retailerFormatValid := retailerRe.MatchString(obj.Retailer)
+	if !retailerFormatValid {
+		err := errors.New(fmt.Sprintf("Validation error: 'retailer' should only contain alphanumeric chars, spaces, '-' and '&': '%s'", obj.Retailer))
 		log.Println(err)
 		return err
 	}
+	
+	_, dateParseErr := time.Parse("2006-01-02", obj.PurchaseDate)
+	if dateParseErr != nil {
+		err := errors.New(fmt.Sprint("Validation error: invalid 'purchaseDate' format: ", dateParseErr.Error()))
+		log.Println(err)
+		return err
+	}
+
+	_, timeParseErr := time.Parse("15:04", obj.PurchaseTime)
+	if timeParseErr != nil {
+		err := errors.New(fmt.Sprint("Validation error: invalid 'purchaseTime' format: ", timeParseErr.Error()))
+		log.Println(err)
+		return err
+	}
+
+	totalRe := regexp.MustCompile(`^\d+\.\d{2}$`)
+	totalIsFormatted := totalRe.MatchString(obj.Total)
+	if !totalIsFormatted {
+		err := errors.New(fmt.Sprint("Validation error: invalid 'total' format, it should be in the format 000(...)00.00: ", obj.Total))
+		return err
+	}
+
+	// -------------------- END Manual edits ---------------------------------- //
 
 	for _, el := range obj.Items {
 		if err := AssertItemConstraints(el); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }

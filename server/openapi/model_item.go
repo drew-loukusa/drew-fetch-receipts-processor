@@ -10,8 +10,11 @@
 
 package openapi
 
-
-
+import (
+	"regexp"
+	"errors"
+	"fmt"
+)
 
 type Item struct {
 
@@ -39,5 +42,26 @@ func AssertItemRequired(obj Item) error {
 
 // AssertItemConstraints checks if the values respects the defined constraints
 func AssertItemConstraints(obj Item) error {
+	// -------------------- START Manual edits -------------------------------- //
+	// openapi-generator doesn't seem to actually generate code that validates
+	// if passed fields are formatted correctly according to their 'pattern'
+	// hence I had to manually edit this file to add format checking 
+
+	descRe := regexp.MustCompile("^[\\w\\s\\-]+$") 
+	descIsValid := descRe.MatchString(obj.ShortDescription)
+	
+	if !descIsValid {
+		err := errors.New(fmt.Sprint("Validation error: item 'description' should only contain alphanumeric chars, whitespaces, '_', or '-'", obj.ShortDescription))
+		return err
+	}
+	
+	priceRe := regexp.MustCompile(`^\d+\.\d{2}$`)
+	priceIsFormatted := priceRe.MatchString(obj.Price)
+	if !priceIsFormatted {
+		err := errors.New(fmt.Sprint("Validation error: invalid 'price' format, it should be in the format 000(...)00.00: ", obj.Price))
+		return err
+	}
+	// -------------------- END Manual edits ---------------------------------- //
+	
 	return nil
 }
