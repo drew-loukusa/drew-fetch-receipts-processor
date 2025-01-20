@@ -58,7 +58,7 @@ func AssertItemConstraints(obj Item) error {
 	priceRe := regexp.MustCompile(`^\d+\.\d{2}$`)
 	priceIsFormatted := priceRe.MatchString(obj.Price)
 	if !priceIsFormatted {
-		err := errors.New(fmt.Sprint("Validation error: invalid 'price' format, it should be in the format 000(...)00.00: ", obj.Price))
+		err := errors.New(fmt.Sprintf("Validation error: item '%s' has invalid 'price': %s, it should be in the format 000(...)00.00", obj.ShortDescription, obj.Price))
 		return err
 	}
 	// -------------------- END Manual edits ---------------------------------- //
