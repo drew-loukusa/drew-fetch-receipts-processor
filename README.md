@@ -1,5 +1,7 @@
 # drew-fetch-receipts-processor
 
+This is a very simple go based service which implements the interface as defined in this [repo](https://github.com/fetch-rewards/receipt-processor-challenge/tree/main).
+
 Apologies if this go code isn't completely idomatic, I decided to try using go to do this, which was fun :), but it was my first time using it.
 
 ## How to run
@@ -20,7 +22,7 @@ cd into `src` and run `go test .`
 - Entry point for program is [main.go](src/main.go)
 - Application is setup in [app.go](src/app.go)
 - Core logic is spread across [src/receipts_service.go](src/receipts_service.go) and [src/utils.go](src/utils.go) (`utils.go` contains the logic for counting how many points a receipt is worth)
-- I used [openapi-generator](https://openapi-generator.tech/) to generate an api interface,
+- I used [openapi-generator](https://openapi-generator.tech/) to generate an api interface from the spec,
   which I implement in [src/receipts_service.go](src/receipts_service.go)
 
 - Everything in [server/openapi](server/openapi/) is generated
