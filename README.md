@@ -17,10 +17,11 @@ cd into `src` and run `go test .`
 
 ## Important Notes
 
-- Core logic is in [src/app.go](src/app.go)
-
+- Entry point for program is [main.go](src/main.go)
+- Application is setup in [app.go](src/app.go)
+- Core logic is in [src/receipts_service.go](src/receipts_service.go)
 - I used [openapi-generator](https://openapi-generator.tech/) to generate an api interface,
-  which I implement in [src/app.go](src/app.go)
+  which I implement in [src/receipts_service.go](src/receipts_service.go)
 
 - Everything in [server/openapi](server/openapi/) is generated
   with the exception of some manually added field validation code that the generator failed to generate.
